@@ -1,0 +1,16 @@
+This rep will keep all phylogenetic analyses I will do for Timema.
+
+##########################################################################################################################3
+
+Pipeline
+0 - get reads (OMG, this was a bit messy)
+1 - filter reads
+2 - map reads against Tce assembly
+
+
+###################
+## 0 - get reads ##
+
+
+
+
