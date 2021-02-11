@@ -18,3 +18,7 @@ So I will pool the Nosil GBS samples in groups of 3.
 
 Nosil reads were trimmed to 60 bp
 Schwander reads trimmed to 80 bp
+
+"""bash
+cat inds_trim80 | while read line; do co reads/"$line"* . ; done
+"""
