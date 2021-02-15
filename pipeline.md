@@ -19,6 +19,19 @@ So I will pool the Nosil GBS samples in groups of 3.
 Nosil reads were trimmed to 60 bp
 Schwander reads trimmed to 80 bp
 
-"""bash
+```bash
 cat inds_trim80 | while read line; do co reads/"$line"* . ; done
-"""
+```
+
+
+## Call SNPs ##
+
+I will use VarScan (because there are several samples)
+
+```bash
+screen -S Tdi_tree
+module load Bioinformatics/Software/vital-it 
+module load UHTS/Analysis/samtools/1.10
+samtools mpileup -f 1_Tdi_b3v08.fasta *filtered.bam > Tdi_tree.mpileup
+
+```
