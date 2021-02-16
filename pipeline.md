@@ -33,5 +33,5 @@ screen -S Tdi_tree
 module load Bioinformatics/Software/vital-it 
 module load UHTS/Analysis/samtools/1.10
 samtools mpileup -f 1_Tdi_b3v08.fasta *filtered.bam > Tdi_tree.mpileup
-
+java -jar VarScan.v2.3.9.jar mpileup2snp Tdi_tree.mpileup --min-coverage 10 --min-reads2 5 --output-vcf 1 > Tdi_tree.vcf
 ```
