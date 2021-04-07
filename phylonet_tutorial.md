@@ -14,7 +14,7 @@ export PKG_CONFIG_PATH=$HOME/lib/pkgconfig:$PKG_CONFIG_PATH
 ##
 ```bash
 java -jar PhyloNet_3.8.2.jar MCMCseq_exampleSu.nex
-
+```
 ### Output
 can be read by this link
 https://icytree.org/
