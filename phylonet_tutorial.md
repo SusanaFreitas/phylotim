@@ -47,6 +47,8 @@ Mapping individuals to species:
 Removing space from end of line>
 ```bash
 sed -i 's/ *$//' file
+# in case of one word long lines:
+tr -s " " < file
 ```
 
 java -jar ./PhyloNet_3.8.2.jar tracer.nex
