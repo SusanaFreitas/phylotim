@@ -6,6 +6,35 @@ The samples have very low no of reads, but lets try anyway.
 - Working folder:
 /scratch/wally/FAC/FBM/DEE/tschwand/default/sfreitas/phylotim/tree_april_21
 
+1) Map reads
+2) Sort bam files
+3) Call SNPs - VarScan2 (because I am not managing with FB)
+
+
+To make a vcf file with the sample names (instead of sample1, sample2, etc) with mpileup:
+```bash
+ls *filtered.bam > order_samples
+less order_samples 
+sed -i 's/-filtered.bam//g' order_samples
+```
+
+```bash
+screen -S will_SNPs
+module load Bioinformatics/Software/vital-it
+module load UHTS/Analysis/samtools/1.10
+samtools mpileup -f Tps_LRv5b.fasta *filtered.bam > nosil_tps.mpileup
+java -jar VarScan.v2.3.9.jar mpileup2snp nosil_Tps.mpileup  --min-reads2 5 --output-vcf 1 --vcf-sample-list order_samples > nosil_tps.vcf
+```
+I didnt save the names of the samples (to do so, see [here](https://www.biostars.org/p/94505/). So I need to check the order of bam files, which corresponds to the order in the vcf file.
+
+
+Download to my computer:
+```bash
+scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/sample_order /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
+scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/all_Tms.vcf /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
+```
+
+
 
 
 
