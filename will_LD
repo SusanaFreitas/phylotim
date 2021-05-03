@@ -34,6 +34,19 @@ module load UHTS/Analysis/GenomeAnalysisTK/4.1.3.0
 GenomeAnalysisTK CreateSequenceDictionary --REFERENCE Tps_LRv5b.fasta
 GenomeAnalysisTK VariantsToTable -R Tps_LRv5b.fasta -V nosil_tps.vcf -F CHROM -F POS -GF GT -GF DP --output Tps.nosil.DP.table
 ```
+Got an error:
+The provided VCF file is malformed at approximately line number 266519: Duplicate allele added to VariantContext: C, for input source: nosil_tps.vcf
+This was because on this line:
+```bash
+sed -n 266519p nosil_tps.vcf
+266519
+```
+there were more than one genotype (biallelic position)
+So I removed all likes with commas:
+```bash
+awk -F '\t' '/^#/ {print;next;} {OFS="\t";R=$4;n=split($5,a,/[,]/);s="";for(i=1;i<=n;i++) {s=sprintf("%s%s%s%s",s,(i==1?"":","),a[i],a[i]==R?"AAAAAAAAA":"");} $5=s; print;}' old.vcf > new.vcf
+GenomeAnalysisTK VariantsToTable -R Tps_LRv5b.fasta -V nosil_tps_withvirg.vcf -F CHROM -F POS -GF GT -GF DP --output Tps.nosil.DP.table 
+```
 
 
 Download to my computer:
@@ -41,10 +54,6 @@ Download to my computer:
 scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/sample_order /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
 scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/all_Tms.vcf /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
 ```
-
-
-After 
-
 
 
 
