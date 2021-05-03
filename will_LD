@@ -28,12 +28,22 @@ java -jar VarScan.v2.3.9.jar mpileup2snp nosil_Tps.mpileup  --min-reads2 5 --out
 I didnt save the names of the samples (to do so, see [here](https://www.biostars.org/p/94505/). So I need to check the order of bam files, which corresponds to the order in the vcf file.
 
 
+After getting the vcf file, we will observe the no of reads per position:
+```bash
+module load UHTS/Analysis/GenomeAnalysisTK/4.1.3.0
+GenomeAnalysisTK CreateSequenceDictionary --REFERENCE Tps_LRv5b.fasta
+GenomeAnalysisTK VariantsToTable -R Tps_LRv5b.fasta -V nosil_tps.vcf -F CHROM -F POS -GF GT -GF DP --output Tps.nosil.DP.table
+```
+
+
 Download to my computer:
 ```bash
 scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/sample_order /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
 scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/all_Tms.vcf /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
 ```
 
+
+After 
 
 
 
