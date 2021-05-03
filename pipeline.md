@@ -53,8 +53,7 @@ USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
 
 
 ## Filter by DP ##
-First I need to get the number of reads per position, so I will plot the read distribution
-# per variant and decide the cutoff according to the 10 and 99 quantiles.
+First I need to get the number of reads per position, so I will plot the read distribution per variant and decide the cutoff according to the 10 and 99 quantiles.
 
 
 In screen :
@@ -75,6 +74,7 @@ GenomeAnalysisTK VariantsToTable \
 There was a problem while running GATK:
 "The provided VCF file is malformed at approximately line number 15735: Duplicate allele added to VariantContext"
 So I deleted the problematic line and re-run GATK (I had to deleted a few lines):
+
  ```bash
 sed -e '15735d' Tdi_tree.vcf > Tdi_treeclean.vcf
 sed -e '55609d' Tdi_treeclean.vcf > Tdi_treeclean2.vcf
@@ -195,5 +195,31 @@ vcftools --recode --recode-INFO-all --vcf Tdi_tree_DPfilter.vcf --remove-indv Tp
 ```bash
 vcftools --recode --recode-INFO-all --vcf Tdi.missfilt.recode.vcf --max-missing 0.75 --out Tdi_final
 ```
+
+
+# Tree with Chloe/Guillaume dataset
+
+
+17-1811
+
+17-2076
+
+17-1927
+
+17-1810
+
+17-2165
+
+17-1793
+
+17-2037
+
+17-2005
+
+17-1770
+
+
+
+
 
 
