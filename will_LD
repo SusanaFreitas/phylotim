@@ -44,7 +44,7 @@ sed -n 266519p nosil_tps.vcf
 there were more than one genotype (biallelic position)
 So I removed all likes with commas:
 ```bash
-awk -F '\t' '/^#/ {print;next;} {OFS="\t";R=$4;n=split($5,a,/[,]/);s="";for(i=1;i<=n;i++) {s=sprintf("%s%s%s%s",s,(i==1?"":","),a[i],a[i]==R?"AAAAAAAAA":"");} $5=s; print;}' old.vcf > new.vcf
+awk -F '\t' '/^#/ {print;next;} {OFS="\t";R=$4;n=split($5,a,/[,]/);s="";for(i=1;i<=n;i++) {s=sprintf("%s%s%s%s",s,(i==1?"":","),a[i],a[i]==R?"AAAAAAAAA":"");} $5=s; print;}' nosil_tps.vcf > nosil_tps_withvirg.vcf
 GenomeAnalysisTK VariantsToTable -R Tps_LRv5b.fasta -V nosil_tps_withvirg.vcf -F CHROM -F POS -GF GT -GF DP --output Tps.nosil.DP.table 
 ```
 
