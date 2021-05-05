@@ -60,19 +60,12 @@ Download to my computer:
 scp sfreitas1@axiom-front1.unil.ch:/scratch/wally/FAC/FBM/DEE/tschwand/default/sfreitas/phylotim/tree_april_21/*table /home/cravinhos/Documents/other_people/will_LD
 ```
 
-Download to my computer:
-```bash
-scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/sample_order /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
-scp sfreitas1@axiom-front1.unil.ch:/scratch/axiom/FAC/FBM/DEE/tschwand/default/sfreitas/geneflow/05-mapping/Tms/call_old_and_new/all_Tms.vcf /home/cravinhos/Dropbox/Timema_cryptic_geneflow/2_from_reads_to_vcf/monikensis/Tms_all_varscan
-```
 
-#### BASH ####
+in bash:
 ```bash
 for ((i=3; i<=96; i +=2)); do cut -f $i,$((i+1)) Tps.nosil.DP.table  | awk '$1 != "./." {print $2}' > $i.DP; done
 ```
-
-#### R ####
-# define the file names list (10 samples here) 
+in R:
 ```R
 ## this will make a list of samples
 nameList <- c()
@@ -121,5 +114,121 @@ GenomeAnalysisTK VariantFiltration -R Tps_LRv5b.fasta -V file2.vcf --genotype-fi
 # http://selectvariants1.rssing.com/chan-9504484/all_p2.html
 ```
 
+After DP cutoff, I will work on my computer. 
+Download to my computer:
+```bash
+scp sfreitas1@axiom-front1.unil.ch:/scratch/wally/FAC/FBM/DEE/tschwand/default/sfreitas/phylotim/tree_april_21/Tps.nosil_DPfilter.vcf /home/cravinhos/Documents/other_people/will_LD
+```
 
+And filter by QUAL > 30 (will skip this for now)
+
+```python
+	- QUAL > 30 : prob of incorrect read = 1 in 1000; base call accuracy = 99.9%
+	- Use home made python script
+
+#! python
+import sys
+import os
+import vcf
+
+vcf_reader = vcf.Reader(open("Tps.nosil_DPfilter.vcf", 'r'))
+vcf_writer = vcf.Writer(open('Tps.nosil_QUAL.vcf', 'w'), vcf_reader)
+# record = vcf_reader.next()
+# print record.POS
+
+## we can combine filtering options from different fields (e.g. INFO and FORMAT:)
+#for record in vcf_reader:
+#    if record.INFO['DP']>10 and record.QUAL > 30:
+#        vcf_writer.write_record(record)
+
+## to filter by QUAL
+for record in vcf_reader:
+    if record.QUAL > 30:
+        vcf_writer.write_record(record)
+
+```
+Remove low coverage individuals
+```bash
+vcftools --vcf Tps.nosil_DPfilter.vcf --geno-depth --out Tps
+```
+in R:
+```R
+tab <- read.csv2(file="Tps.gdepth", sep="\t")
+require(reshape2)
+
+mTps<- melt(tab[c(-2)])
+
+
+ Basic barplot
+ggplot(data=mTps, aes(x=variable, y=value)) +
+ xlim(0, 100) +
+geom_violin()
+  geom_bar(stat="identity")
+
+
+
+
+
+
+```
+
+
+################# Tge #################
+## low DP samples: to be removed
+Gepop2.2
+Gepop2.5
+Gepop2.6
+Gepop1.17
+Gepop1.11
+Gepop1.3
+
+################# Tms #################
+- Individuals removed:
+Tms18_P2 and Tms17_P1
+
+
+################# Tdi #################
+- Individuals removed from Tdi P1 (from a total of 24):
+Tdi8_P1
+Tdi14_P1
+Tdi20_P1
+Tdi21_P1
+- Individuals removed from Tdi P2 (from a total of 24):
+Tdi17_P2
+Tdi14_P2
+Tdi11_P2
+Tdi13_P2
+Tdi23_P2
+Tdi5_P2
+Tdi6_P2
+
+
+
+
+
+###########################################################################
+##################### 8.5) Filter by missing data #########################
+###########################################################################
+
+
+	- exclude all sites with 25% or more missing genotype
+
+vcftools --recode --recode-INFO-all --vcf Tms.trim3_posvcflib.vcf --max-missing 0.75 --out Tms.trim3missfilt 
+vcftools --recode --recode-INFO-all --vcf Tms.trim2_posvcflib.vcf --max-missing 0.75 --out Tms.trim2missfilt
+vcftools --recode --recode-INFO-all --vcf Tms.fb_posvcflib.vcf --max-missing 0.75 --out Tms.fbmissfilt
+vcftools --recode --recode-INFO-all --vcf Tge.stacks.DP_filter.vcf --max-missing 0.75 --out Tge.missfilt
+
+vcftools --recode --recode-INFO-all --vcf Tsi.posvcflib.vcf --max-missing 0.75 --out Tsi.missfilt
+vcftools --recode --recode-INFO-all --vcf Tdi.posvcflib.vcf --max-missing 0.75 --out Tdi.missfilt
+
+## Tge
+# sample names: Gepop1.1, Gepop1.2, Gepop1.3, Gepop1.4, Gepop1.5, Gepop1.6, Gepop1.7, Gepop1.8, Gepop1.9,
+# Gepop1.10, Gepop1.11, Gepop1.12, Gepop1.13, Gepop1.14, Gepop1.15, Gepop1.16, Gepop1.17, Gepop1.18, Gepop1.19,
+# Gepop1.20, Gepop1.21, Gepop1.22, Gepop1.23, Gepop2.1, Gepop2.2, Gepop2.3, Gepop2.4, Gepop2.5, Gepop2.6, Gepop2.7,
+# Gepop2.8, Gepop2.9, Gepop2.10, Gepop2.11, Gepop2.12, Gepop2.13, Gepop2.14, Gepop2.15, Gepop2.16, Gepop2.17, Gepop2.18,
+# Gepop2.19, Gepop2.20, Gepop2.21, Gepop2.22, Gepop2.23
+
+
+vcftools --recode --recode-INFO-all --vcf TdiP1_posvcflibcov.vcf --max-missing 0.75 --out TdiP1_missfilt
+vcftools --recode --recode-INFO-all --vcf TdiP2_posvcflibcov.vcf --max-missing 0.75 --out TdiP2_missfilt
 
