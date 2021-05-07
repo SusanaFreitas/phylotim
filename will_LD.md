@@ -156,16 +156,25 @@ in R:
 tab <- read.csv2(file="Tps.gdepth", sep="\t")
 require(reshape2)
 
-mTps<- melt(tab[c(-2)])
+mTps<- melt(tab[c(-1,-2)])
 
 
- Basic barplot
-ggplot(data=mTps, aes(x=variable, y=value)) +
- xlim(0, 100) +
-geom_violin()
-  geom_bar(stat="identity")
 
 
+#mTsi <- melt(Tsi[c(-1,-2)])
+
+library(ggplot2)
+png(file="Tpsnosil_posvcflib_depth.png", height=600, width=1800)
+ggplot(data=mTps, aes(x = variable, y = value)) +
+        geom_boxplot(aes(fill=variable))+         
+        theme(axis.text.x = element_text(angle = 90,  vjust = -0.01, size=12),
+        legend.position = "none") +
+        ylim(-10, 50) +
+        ggtitle("Depth - Tps - posvcflib") +
+        geom_hline(yintercept= 200, linetype="dashed", color = "red") +
+        geom_hline(yintercept= 8, linetype="dashed", color = "red") +
+        geom_hline(yintercept= 5, linetype="dashed", color = "blue")
+dev.off()
 
 
 
