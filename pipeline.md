@@ -238,7 +238,7 @@ module load UHTS/Analysis/samtools/1.8
 #bwa index 1_Tps_b3v08.fasta
 srun -p wally --nodes 1 --ntasks=4 --mem=20GB --time 10-00:00:0 --account=tschwand_default --pty bash 
 for i in $(cat trim80mapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim80.fq.gz $i-map.sam;
+        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim80.fq.gz > $i-map.sam;
         echo $i;
 done
 
@@ -287,7 +287,7 @@ module load UHTS/Analysis/samtools/1.8
 #bwa index 1_Tps_b3v08.fasta
 srun -p wally --nodes 1 --ntasks=4 --mem=20GB --time 10-00:00:0 --account=tschwand_default --pty bash 
 for i in $(cat trim60mapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim60.fq.gz $i-map.sam;
+        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim60.fq.gz > $i-map.sam;
         echo $i;
 done
  
@@ -368,7 +368,7 @@ samtools faidx 1_Tps_b3v08.fasta
 bwa index 1_Tps_b3v08.fasta
 
 for i in $(cat Tpsmapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.fq.gz-trim.fq.gz $i-map.sam;
+        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.fq.gz-trim.fq.gz > $i-map.sam;
         echo $i;
 done
 
@@ -429,7 +429,7 @@ samtools faidx 1_Tps_b3v08.fasta
 bwa index 1_Tps_b3v08.fasta
 
 for i in $(cat Tpsmapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.fq.gz-trim.fq.gz $i-map.sam;
+        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.fq.gz-trim.fq.gz > $i-map.sam;
         echo $i;
 done
 
