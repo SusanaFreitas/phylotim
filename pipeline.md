@@ -199,37 +199,85 @@ vcftools --recode --recode-INFO-all --vcf Tdi.missfilt.recode.vcf --max-missing 
 
 # Tree with Chloe/Guillaume dataset
 
-
+Individuals:
 17-1811
-
 17-2076
-
 17-1927
-
 17-1810
-
 17-2165
-
 17-1793
-
 17-2037
-
 17-2005
-
 17-1770
 
 
 
-Files were trimmed with different parameters, so they have different endnames. I will run bwa in three separate screens regarding how the files were named.
+Files were trimmed with different parameters, so they have different endnames. I will run bwa in three separate screens regarding how the files were named:
 
-
-
+- TRIMTpsMAPPING
 
 ```bash
-screen -S trim80mapping
+screen -S tpsmapping
 module add Bioinformatics/Software/vital-it
 module load UHTS/Aligner/bwa/0.7.15
 module load UHTS/Analysis/samtools/1.8
+# samtools faidx 1_Tps_b3v08.fasta
+
+# cd /scratch/wally/FAC/FBM/DEE/tschwand/nephus/phylotim/02-mapping/reads
+
+### Create a BWA index in the genomic reference
+# gunzip 1_Tdi_b3v08.fasta.gz
+
+samtools faidx 1_Tps_b3v08.fasta
+bwa index 1_Tps_b3v08.fasta
+
+for i in $(cat Tpsmapping); do
+        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.fq.gz-trim.fq.gz > $i-map.sam;
+        echo $i;
+done
+
+# convert individual sam to bam, sort and index
+for i in $(cat trim60mapping); do
+        samtools view -S -h $i-map.sam | grep -v -e 'XA:Z:' -e 'SA:Z:' | samtools view -b -h -F 0x100 -q 30 - | samtools sort -o $i-filtered.bam - ;
+        samtools index $i-filtered.bam;
+done
+
+# grep -v -e 'XA:Z:' -e 'SA:Z:' this will exclude all possible multi mapped reads.
+# this step has to be done on the sam file, and not on the (binary) bam file.
+# Info taken from here: https://bioinformatics.stackexchange.com/questions/508/obtaining-uniquely-mapped-reads-from-bwa-mem-alignment
+# -S	   ignored (input format is auto-detected)
+#      --input-fmt-option OPT[=VAL]
+#               Specify a single input file format option in the form of OPTION or OPTION=VALUE
+
+# -q INT Skip alignments with MAPQ smaller than INT [0].
+# -u Output uncompressed BAM. This option saves time spent on compression/decompression and is thus preferred when the output is piped to another samtools command
+# -h Include the header in the output.
+
+# -b Output in the BAM format.
+# -F  Do not output alignments with any bits set in INT present in the FLAG field. INT can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/) or in octal by beginning with `0' (i.e. /^0[0-7]+/) [0].
+# -q Skip alignments with MAPQ smaller than INT [0].
+
+
+# test quality of alignments
+for i in $(cat trim60mapping); do
+        samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
+done
+```
+
+
+
+- TRIM60MAPPING
+
+
+```bash
+screen -S trim60mapping
+module add Bioinformatics/Software/vital-it
+module load UHTS/Aligner/bwa/0.7.15
+module load UHTS/Analysis/samtools/1.8
+# samtools faidx 1_Tps_b3v08.fasta
+
+# cd /scratch/wally/FAC/FBM/DEE/tschwand/nephus/phylotim/02-mapping/reads
+
 
 ### Create a BWA index in the genomic reference
 # gunzip 1_Tdi_b3v08.fasta.gz
@@ -237,6 +285,60 @@ module load UHTS/Analysis/samtools/1.8
 #samtools faidx 1_Tps_b3v08.fasta
 #bwa index 1_Tps_b3v08.fasta
 srun -p wally --nodes 1 --ntasks=4 --mem=20GB --time 10-00:00:0 --account=tschwand_default --pty bash 
+
+for i in $(cat trim60mapping); do
+        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim60.fq.gz > $i-map.sam;
+        echo $i;
+done
+
+# convert individual sam to bam, sort and index
+for i in $(cat trim60mapping); do
+        samtools view -S -h $i-map.sam | grep -v -e 'XA:Z:' -e 'SA:Z:' | samtools view -b -h -F 0x100 -q 30 - | samtools sort -o $i-filtered.bam - ;
+        samtools index $i-filtered.bam;
+done
+
+# grep -v -e 'XA:Z:' -e 'SA:Z:' this will exclude all possible multi mapped reads.
+# this step has to be done on the sam file, and not on the (binary) bam file.
+# Info taken from here: https://bioinformatics.stackexchange.com/questions/508/obtaining-uniquely-mapped-reads-from-bwa-mem-alignment
+# -S	   ignored (input format is auto-detected)
+#      --input-fmt-option OPT[=VAL]
+#               Specify a single input file format option in the form of OPTION or OPTION=VALUE
+
+# -q INT Skip alignments with MAPQ smaller than INT [0].
+# -u Output uncompressed BAM. This option saves time spent on compression/decompression and is thus preferred when the output is piped to another samtools command
+# -h Include the header in the output.
+
+# -b Output in the BAM format.
+# -F  Do not output alignments with any bits set in INT present in the FLAG field. INT can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/) or in octal by beginning with `0' (i.e. /^0[0-7]+/) [0].
+# -q Skip alignments with MAPQ smaller than INT [0].
+
+
+# test quality of alignments
+for i in $(cat trim60mapping); do
+        samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
+done
+
+```
+
+- TRIM80MAPPING
+
+```bash
+screen -S tpsmapping
+module add Bioinformatics/Software/vital-it
+module load UHTS/Aligner/bwa/0.7.15
+module load UHTS/Analysis/samtools/1.8
+# samtools faidx 1_Tps_b3v08.fasta
+
+# cd /scratch/wally/FAC/FBM/DEE/tschwand/nephus/phylotim/02-mapping/reads
+
+### Create a BWA index in the genomic reference
+# gunzip 1_Tdi_b3v08.fasta.gz
+
+#samtools faidx 1_Tps_b3v08.fasta
+#bwa index 1_Tps_b3v08.fasta
+
+srun -p wally --nodes 1 --ntasks=4 --mem=20GB --time 10-00:00:0 --account=tschwand_default --pty bash 
+
 for i in $(cat trim80mapping); do
         bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim80.fq.gz > $i-map.sam;
         echo $i;
@@ -268,227 +370,4 @@ done
 for i in $(cat trim80mapping); do
         samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
 done
-
 ```
-
-
-TRIM60MAPPING
-
-```bash
-screen -S trim60mapping
-module add Bioinformatics/Software/vital-it
-module load UHTS/Aligner/bwa/0.7.15
-module load UHTS/Analysis/samtools/1.8
-
-### Create a BWA index in the genomic reference
-# gunzip 1_Tdi_b3v08.fasta.gz
-
-#samtools faidx 1_Tps_b3v08.fasta
-#bwa index 1_Tps_b3v08.fasta
-srun -p wally --nodes 1 --ntasks=4 --mem=20GB --time 10-00:00:0 --account=tschwand_default --pty bash 
-for i in $(cat trim60mapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim60.fq.gz > $i-map.sam;
-        echo $i;
-done
- 
-# convert individual sam to bam, sort and index
-for i in $(cat trim60mapping); do
-        samtools view -S -h $i-map.sam | grep -v -e 'XA:Z:' -e 'SA:Z:' | samtools view -b -h -F 0x100 -q 30 - | samtools sort -o $i-filtered.bam - ;
-        samtools index $i-filtered.bam;
-done
-
-# grep -v -e 'XA:Z:' -e 'SA:Z:' this will exclude all possible multi mapped reads.
-# this step has to be done on the sam file, and not on the (binary) bam file.
-# Info taken from here: https://bioinformatics.stackexchange.com/questions/508/obtaining-uniquely-mapped-reads-from-bwa-mem-alignment
-# -S	   ignored (input format is auto-detected)
-#      --input-fmt-option OPT[=VAL]
-#               Specify a single input file format option in the form of OPTION or OPTION=VALUE
-
-# -q INT Skip alignments with MAPQ smaller than INT [0].
-# -u Output uncompressed BAM. This option saves time spent on compression/decompression and is thus preferred when the output is piped to another samtools command
-# -h Include the header in the output.
-
-# -b Output in the BAM format.
-# -F  Do not output alignments with any bits set in INT present in the FLAG field. INT can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/) or in octal by beginning with `0' (i.e. /^0[0-7]+/) [0].
-# -q Skip alignments with MAPQ smaller than INT [0].
-
-
-# test quality of alignments
-for i in $(cat trim60mapping); do
-        samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
-done
-#
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```bash
-screen -S tpsmapping
-module add Bioinformatics/Software/vital-it
-module load UHTS/Aligner/bwa/0.7.15
-module load UHTS/Analysis/samtools/1.8
-samtools faidx 1_Tps_b3v08.fasta
-
-### Create a BWA index in the genomic reference
-# gunzip 1_Tdi_b3v08.fasta.gz
-
-samtools faidx 1_Tps_b3v08.fasta
-bwa index 1_Tps_b3v08.fasta
-
-for i in $(cat Tpsmapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.fq.gz-trim.fq.gz > $i-map.sam;
-        echo $i;
-done
-
-# convert individual sam to bam, sort and index
-for i in $(cat trim60mapping); do
-        samtools view -S -h $i-map.sam | grep -v -e 'XA:Z:' -e 'SA:Z:' | samtools view -b -h -F 0x100 -q 30 - | samtools sort -o $i-filtered.bam - ;
-        samtools index $i-filtered.bam;
-done
-
-# grep -v -e 'XA:Z:' -e 'SA:Z:' this will exclude all possible multi mapped reads.
-# this step has to be done on the sam file, and not on the (binary) bam file.
-# Info taken from here: https://bioinformatics.stackexchange.com/questions/508/obtaining-uniquely-mapped-reads-from-bwa-mem-alignment
-# -S	   ignored (input format is auto-detected)
-#      --input-fmt-option OPT[=VAL]
-#               Specify a single input file format option in the form of OPTION or OPTION=VALUE
-
-# -q INT Skip alignments with MAPQ smaller than INT [0].
-# -u Output uncompressed BAM. This option saves time spent on compression/decompression and is thus preferred when the output is piped to another samtools command
-# -h Include the header in the output.
-
-# -b Output in the BAM format.
-# -F  Do not output alignments with any bits set in INT present in the FLAG field. INT can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/) or in octal by beginning with `0' (i.e. /^0[0-7]+/) [0].
-# -q Skip alignments with MAPQ smaller than INT [0].
-
-
-# test quality of alignments
-for i in $(cat trim60mapping); do
-        samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
-done
-```
-```bash
-screen -S trim60mapping
-module add Bioinformatics/Software/vital-it
-module load UHTS/Aligner/bwa/0.7.15
-module load UHTS/Analysis/samtools/1.8
-samtools faidx 1_Tps_b3v08.fasta
-
-### Create a BWA index in the genomic reference
-# gunzip 1_Tdi_b3v08.fasta.gz
-
-samtools faidx 1_Tps_b3v08.fasta
-bwa index 1_Tps_b3v08.fasta
-
-srun -p wally --nodes 1 --ntasks=4 --mem=20GB --time 10-00:00:0 --account=tschwand_default --pty bash 
-
-for i in $(cat trim60mapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.trim60.fq.gz
-        
-module add Bioinformatics/Software/vital-it
-module load UHTS/Aligner/bwa/0.7.15
-module load UHTS/Analysis/samtools/1.8
-samtools faidx 1_Tps_b3v08.fasta
-
-### Create a BWA index in the genomic reference
-# gunzip 1_Tdi_b3v08.fasta.gz
-
-samtools faidx 1_Tps_b3v08.fasta
-bwa index 1_Tps_b3v08.fasta
-
-for i in $(cat Tpsmapping); do
-        bwa mem -t 4 -M -R "@RG\tID:$i\tSM:$i" 1_Tps_b3v08.fasta $i.fq.gz-trim.fq.gz > $i-map.sam;
-        echo $i;
-done
-
-# convert individual sam to bam, sort and index
-for i in $(cat Tpsmapping); do
-        samtools view -S -h $i-map.sam | grep -v -e 'XA:Z:' -e 'SA:Z:' | samtools view -b -h -F 0x100 -q 30 - | samtools sort -o $i-filtered.bam - ;
-        samtools index $i-filtered.bam;
-done
-
-# grep -v -e 'XA:Z:' -e 'SA:Z:' this will exclude all possible multi mapped reads.
-# this step has to be done on the sam file, and not on the (binary) bam file.
-# Info taken from here: https://bioinformatics.stackexchange.com/questions/508/obtaining-uniquely-mapped-reads-from-bwa-mem-alignment
-# -S	   ignored (input format is auto-detected)
-#      --input-fmt-option OPT[=VAL]
-#               Specify a single input file format option in the form of OPTION or OPTION=VALUE
-
-# -q INT Skip alignments with MAPQ smaller than INT [0].
-# -u Output uncompressed BAM. This option saves time spent on compression/decompression and is thus preferred when the output is piped to another samtools command
-# -h Include the header in the output.
-
-# -b Output in the BAM format.
-# -F  Do not output alignments with any bits set in INT present in the FLAG field. INT can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/) or in octal by beginning with `0' (i.e. /^0[0-7]+/) [0].
-# -q Skip alignments with MAPQ smaller than INT [0].
-
-
-# test quality of alignments
-for i in $(cat Tpsmapping); do
-        samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
-done$i-map.sam;
-        echo $i;
-done
-
-# convert individual sam to bam, sort and index
-for i in $(cat Tpsmapping); do
-        samtools view -S -h $i-map.sam | grep -v -e 'XA:Z:' -e 'SA:Z:' | samtools view -b -h -F 0x100 -q 30 - | samtools sort -o $i-filtered.bam - ;
-        samtools index $i-filtered.bam;
-done
-
-# grep -v -e 'XA:Z:' -e 'SA:Z:' this will exclude all possible multi mapped reads.
-# this step has to be done on the sam file, and not on the (binary) bam file.
-# Info taken from here: https://bioinformatics.stackexchange.com/questions/508/obtaining-uniquely-mapped-reads-from-bwa-mem-alignment
-# -S	   ignored (input format is auto-detected)
-#      --input-fmt-option OPT[=VAL]
-#               Specify a single input file format option in the form of OPTION or OPTION=VALUE
-
-# -q INT Skip alignments with MAPQ smaller than INT [0].
-# -u Output uncompressed BAM. This option saves time spent on compression/decompression and is thus preferred when the output is piped to another samtools command
-# -h Include the header in the output.
-
-# -b Output in the BAM format.
-# -F  Do not output alignments with any bits set in INT present in the FLAG field. INT can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/) or in octal by beginning with `0' (i.e. /^0[0-7]+/) [0].
-# -q Skip alignments with MAPQ smaller than INT [0].
-
-
-# test quality of alignments
-for i in $(cat trim60mapping); do
-        samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
-done
-
-```
-
-
