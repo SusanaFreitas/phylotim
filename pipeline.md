@@ -381,10 +381,13 @@ I will use VarScan (because there are several samples)
 
 ```bash
 screen -S Tdi_tree
+# cd /scratch/wally/FAC/FBM/DEE/tschwand/nephus/phylotim/02-mapping/reads
 module load Bioinformatics/Software/vital-it 
 module load UHTS/Analysis/samtools/1.10
+# samtools mpileup -f 1_Tdi_b3v08.fasta *filtered.bam --vcf-sample-list Tdi.list > Tdi_tree.mpileup
 samtools mpileup -f 1_Tdi_b3v08.fasta *filtered.bam > Tdi_tree.mpileup
 java -jar VarScan.v2.3.9.jar mpileup2snp Tdi_tree.mpileup --min-coverage 10 --min-reads2 5 --output-vcf 1 > Tdi_tree.vcf
+#
 ```
 - VarScan options
 USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
@@ -400,5 +403,5 @@ USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
         --strand-filter Ignore variants with >90% support on one strand [1]
         --output-vcf    If set to 1, outputs in VCF format
         --variants      Report only variant (SNP/indel) positions (mpileup2cns only) [0]
-        --vcf-sample-list Add a list of sample names to use in the VCF header. This list should be in plain text, one sample per line, in the order that samples appear in the raw mpileup input. 
+        --vcf-sample-list Add a list of sample names to use in the VCF header. This list should be in plain text, one sample per line, in the order that samples appear in the raw mpileup input. This option is only available after 1.13 version
 
