@@ -214,6 +214,8 @@ Individuals:
 
 Files were trimmed with different parameters, so they have different endnames. I will run bwa in three separate screens regarding how the files were named:
 
+### Map the reads
+
 - TRIMTpsMAPPING
 
 ```bash
@@ -371,3 +373,32 @@ for i in $(cat trim80mapping); do
         samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
 done
 ```
+
+
+### Call SNPs
+
+I will use VarScan (because there are several samples)
+
+```bash
+screen -S Tdi_tree
+module load Bioinformatics/Software/vital-it 
+module load UHTS/Analysis/samtools/1.10
+samtools mpileup -f 1_Tdi_b3v08.fasta *filtered.bam > Tdi_tree.mpileup
+java -jar VarScan.v2.3.9.jar mpileup2snp Tdi_tree.mpileup --min-coverage 10 --min-reads2 5 --output-vcf 1 > Tdi_tree.vcf
+```
+- VarScan options
+USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
+        mpileup file - The SAMtools mpileup file
+
+        OPTIONS:
+        --min-coverage  Minimum read depth at a position to make a call [8]
+        --min-reads2    Minimum supporting reads at a position to call variants [2]
+        --min-avg-qual  Minimum base quality at a position to count a read [15]
+        --min-var-freq  Minimum variant allele frequency threshold [0.01]
+        --min-freq-for-hom      Minimum frequency to call homozygote [0.75]
+        --p-value       Default p-value threshold for calling variants [99e-02]
+        --strand-filter Ignore variants with >90% support on one strand [1]
+        --output-vcf    If set to 1, outputs in VCF format
+        --variants      Report only variant (SNP/indel) positions (mpileup2cns only) [0]
+        --vcf-sample-list Add a list of sample names to use in the VCF header. This list should be in plain text, one sample per line, in the order that samples appear in the raw mpileup input. 
+
