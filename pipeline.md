@@ -237,7 +237,7 @@ for i in $(cat Tpsmapping); do
 done
 
 # convert individual sam to bam, sort and index
-for i in $(cat trim60mapping); do
+for i in $(cat Tpsmapping); do
         samtools view -S -h $i-map.sam | grep -v -e 'XA:Z:' -e 'SA:Z:' | samtools view -b -h -F 0x100 -q 30 - | samtools sort -o $i-filtered.bam - ;
         samtools index $i-filtered.bam;
 done
@@ -259,7 +259,7 @@ done
 
 
 # test quality of alignments
-for i in $(cat trim60mapping); do
+for i in $(cat Tpsmapping); do
         samtools flagstat $i-filtered.bam > $i-flagstat.txt ;
 done
 ```
