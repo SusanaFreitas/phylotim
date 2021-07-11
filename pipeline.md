@@ -405,3 +405,23 @@ USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
         --variants      Report only variant (SNP/indel) positions (mpileup2cns only) [0]
         --vcf-sample-list Add a list of sample names to use in the VCF header. This list should be in plain text, one sample per line, in the order that samples appear in the raw mpileup input. This option is only available after 1.13 version
 
+
+
+
+
+
+
+##### - keep reads DP > 8 and DP < 200
+#### gatk ####
+GenomeAnalysisTK VariantFiltration \
+ -R 1_Tdi_b3v08.fasta \
+ -V Tdi_tree.vcf \
+ --genotype-filter-expression 'DP<8||DP>200' \
+ --genotype-filter-name 'DP_8-200' \
+ --set-filtered-genotype-to-no-call\
+ --output Tdi_tree_DPfilter.vcf
+ 
+ 
+ 
+ 
+ vcftools --recode --recode-INFO-all --vcf Tdi_tree_DPfilter.vcf --remove-indv Tps_04_45 --remove-indv Tdi14_P1 --remove-indv Tps_04_60 --remove-indv TpsF_LMA_1_O15  --remove-indv TpsF_LMC_86_RO15 --remove-indv TpsF_LMC_88_RRO15 --remove-indv TpsM_LMA_10_M4 --remove-indv TpsM_LMA_5_M3 --remove-indv TpsM_LMA_6_M1 --remove-indv TpsM_LMA_9_M1 --remove-indv TpsM_LMC_87_RM1 --remove-indv TpsM_LMC_89_RRM1 --remove-indv Tps_04_27 --remove-indv Tps_04_5 --remove-indv TpsF_LMA_3_M5 --remove-indv TpsM_LMA_7_M1 --out Tdi.missfilt
