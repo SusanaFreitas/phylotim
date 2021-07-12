@@ -408,8 +408,9 @@ USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
 
 
 
-
-
+Working directory:
+```bash
+cd /scratch/wally/FAC/FBM/DEE/tschwand/nephus/phylotim/02-mapping/reads 
 
 ##### - keep reads DP > 8 and DP < 200
 #### gatk ####
@@ -420,8 +421,284 @@ GenomeAnalysisTK VariantFiltration \
  --genotype-filter-name 'DP_8-200' \
  --set-filtered-genotype-to-no-call\
  --output Tdi_tree_DPfilter.vcf
+``` 
  
- 
- 
- 
- vcftools --recode --recode-INFO-all --vcf Tdi_tree_DPfilter.vcf --remove-indv Tps_04_45 --remove-indv Tdi14_P1 --remove-indv Tps_04_60 --remove-indv TpsF_LMA_1_O15  --remove-indv TpsF_LMC_86_RO15 --remove-indv TpsF_LMC_88_RRO15 --remove-indv TpsM_LMA_10_M4 --remove-indv TpsM_LMA_5_M3 --remove-indv TpsM_LMA_6_M1 --remove-indv TpsM_LMA_9_M1 --remove-indv TpsM_LMC_87_RM1 --remove-indv TpsM_LMC_89_RRM1 --remove-indv Tps_04_27 --remove-indv Tps_04_5 --remove-indv TpsF_LMA_3_M5 --remove-indv TpsM_LMA_7_M1 --out Tdi.missfilt
+
+Vcf editing (change the samplenames):
+```bash
+# get specific column number with awk:
+
+awk -F " " '{print $9}' name.file > samples
+
+I got a list of sample names. I want to substitute the newline by a tab (or whatever it is between the sample names in the vcf file)
+
+tr "\n" "\t" < samples > tabsamples
+
+
+
+head -30 Tdi_tree_DPfilter.vcf > head.Tdi.DPfilter
+cat head.Tdi.DPfilter new_line_sample_names 
+cat head.Tdi.DPfilter new_line_sample_names > head2.Tdi.DPfilter
+
+If you want to delete lines 1 through 31:
+
+sed -e '1,31d' Tdi_tree_DPfilter.vcf > 
+cat head2.Tdi.DPfilter baseTdi_DPfilter > Tdi_DPfilter_ newnames.vcf
+```
+
+
+
+
+
+And now, finally remove low coverage individuals:
+
+Check if some individuals have very low coverage
+```bash
+vcftools --vcf Tdi_tree_DPfilter.vcf --depth --out Tdi
+```
+
+And exclude the ones that have
+```bash
+Tps_04_45	0	-nan
+Tps_04_60	0	-nan
+TpsF_LMA_1_O15	0	-nan
+TpsF_LMC_86_RO15	0	-nan
+TpsF_LMC_88_RRO15	0	-nan
+Tps_LMA_62	0	-nan
+TpsM_LMA_5_M3	0	-nan
+Tps_SRA_78	0	-nan
+Tps_SRA_79	0	-nan
+Tps_SRA_80	0	-nan
+
+
+vcftools --recode --recode-INFO-all --vcf Tdi_DPfilter_newnames.vcf --remove-indv Tps_04_45 --remove-indv Tps_04_60 --remove-indv TpsF_LMA_1_O15 --remove-indv TpsF_LMC_86_RO15 --remove-indv TpsF_LMC_88_RRO15 --remove-indv Tps_LMA_62 --remove-indv TpsM_LMA_5_M3 --remove-indv Tps_SRA_78 --remove-indv Tps_SRA_79 --remove-indv Tps_SRA_80 --out Tdi.missfilt
+```
+
+Keep only SNPs with max allowed missing data:
+```bash
+vcftools --recode --recode-INFO-all --vcf Tdi.missfilt.recode.vcf --max-missing 0.75 --out Tdi_final75
+# After filtering, kept 29179 out of a possible 433645 Sites
+
+vcftools --recode --recode-INFO-all --vcf Tdi.missfilt.recode.vcf --max-missing 0.50 --out Tdi_final50
+# After filtering, kept 108896 out of a possible 433645 Sites
+
+```
+Now we will make the pairwise distance tree, in R:
+```R
+
+
+
+################################################################
+######################## ADEGENET ##############################
+################################################################
+
+library(vcfR)
+library(adegenet)
+#library(adegraphics)
+#library(pegas)
+#library(StAMPP)
+#library(lattice)
+#library(gplots)
+#library(ape)
+#library(ggmap)
+library(poppr)
+
+#### set working directory
+setwd("/home/cravinhos/Documents/cryptic_gene_flow/tree_guillaume/3_distancetree_R/")
+## 75% max missing data
+
+tdivcf <- read.vcfR("Tdi_final75.recode.vcf", verbose = FALSE )
+tdi <- vcfR2genind(tdivcf)
+
+
+### curate pop and seq 
+sed -i 's/$/" ,"/g' pop.name
+tr -d '\n' < pop.name > pop.name.txt
+sed -i 's/$/" ,"/g' seq.name
+tr -d '\n' < seq.name > seq.name.txt
+sed -i 's/$/", "/g' pop.R
+tr -d '\n' < pop.R > pop_R.txt
+
+## see individual names
+indNames(tdi)
+
+
+## eliminate monikensis individual (from ForSale)
+indNames(tdi)
+Dat1 <- tdi[indNames(tdi) != "Tps_04_24"]
+Dat1 -> tdi
+
+## set pop tdi
+tdi@pop <- as.factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", "Horseranch", "Horseranch",
+                        "Fort Bragg", "Fort Bragg", "NA", "Fort Bragg", "Fort Bragg", "Fort Bragg", "Fish", "Fish",
+                        "Iverson", "Iverson", "Iverson", "Iverson", "Orr", "Iverson", "Ft Ross", "Ft Ross", "Ft Ross", "Ft Ross",
+                        "Ft Ross", "Wpt128", "Wpt128", "Swanton", "Swanton", "Orr", "Swanton", "Swanton", "Swanton", "Big pullout vista",
+                        "Big pullout vista", "Big pullout vista", "Big pullout vista", "Orr", "Orr", "ORR_11", "Summit rd", "Summit rd",
+                        "Summit rd", "Summit rd", "Fish-rock netbag 3", "Fish-rock netbag 1", "Fish-rock netbag 2", "Fish-rock netbag 9",
+                        "Orr", "madonna", "madonna", "madonna", "Manch_5", "Manch_5", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL",
+                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "Manch_4", "manch_1", "manch_1", "Manch_1", "Manch_3", "Manch_1", "Manch_1", "Manch_1", "MANCH_5", "ORR_1", "MANCH_1",
+                        "ORR_8", "MANCH_2", "ORR_1", "MANCH_1", "ORR_8", "MANCH_1", "ORR_1", "MANCH_6", "MANCH_6", "MANCH_12", "MANCH_3", "MANCH_9",
+                        "MANCH_2", "MANCH_6", "MANCH_12", "MANCH_1", "MANCH_1", "MANCH_3", "MANCH_12", "MANCH_1", "MANCH_3", "MANCH_4", "MANCH_6",
+                        "ORR_3", "MANCH_1", "MANCH_1", "MANCH_4", "MANCH_7", "MANCH_5", "MANCH_4", "MANCH_5", "MANCH_2", "MANCH_2", "MANCH_1",
+                        "MANCH_1", "MANCH_7", "MANCH_7", "MANCH_2", "MANCH_4", "MANCH_4", "MANCH_5", "MANCH_5", "MANCH_3", "MANCH_2", "MANCH_4",
+                        "MANCH_7", "MANCH_7", "MANCH_4", "MANCH_7", "ORR_5", "ORR_8", "MANCH_1", "ORR_1", "ORR_4", "MANCH_3", "MANCH_1", "MANCH_3",
+                        "MANCH_4", "MANCH_10", "cross", "cross", "cross", "pop inconnue", "MANCH_2", "ORR_4"))
+tdi@pop
+
+# confirm if we are doing it correctly
+chr_unq <- unique(tdi@pop)
+length(chr_unq)
+
+##### PCoA - ADEGENET #######
+## make PCA
+x.cows <- tab(tdi, freq=TRUE, NA.method="mean")
+pca.cows <- dudi.pca(x.cows, center=TRUE, scale=TRUE)
+
+# 5  Multivariate analyses
+# 5.1  Principal Component Analysis (PCA)
+# Principal Component Analysis (PCA) is the amongst the most common multivariate
+# analyses used in genetics.  Running a PCA ongenindobject is straightforward. 
+# One needs to firstextract allelic data (as frequencies) and replace missing values 
+# using the accessortabandthen use the PCA procedure (dudi.pca).  Let us use this
+# approach on themicrobovdata.
+# Let us first load the data:
+# data(microbov)
+# x.cows <- tab(microbov, freq=TRUE, NA.method="mean")
+# pca.cows <- dudi.pca(x.cows, center=TRUE, scale=FALSE)
+#The function dudi.pca displays a barplot of eigenvalues (thescreeplot) and asks 
+# for a numberof retained principal components.  In general,  eigenvalues represent
+# the amount of geneticdiversity  -  as  measured  by  the  multivariate  method  being
+# used  -  represented  by  each principal component (PC). Here,  each eigenvalue is the
+# variance of the corresponding PC.A sharp decrease in the eigenvalues is usually
+# indicative of the boundaries between relevantstructures and random noise. 
+# Here, how many axes would you retain?
+# Tge = 10
+# tdi = 20
+# Tsi = 5
+
+png("tdi_all_PCA.png", width = 580, height = 500)
+s.label(pca.cows$li)
+s.class(pca.cows$li, fac=pop(tdi), col=funky(41))
+dev.off()
+
+
+# tdi
+indNames(tdi)
+fac.score <- factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", "Horseranch", "Horseranch",
+                        "Fort Bragg", "Fort Bragg", "NA", "Fort Bragg", "Fort Bragg", "Fort Bragg", "Fish", "Fish",
+                        "Iverson", "Iverson", "Iverson", "Iverson", "Orr", "Iverson", "Ft Ross", "Ft Ross", "Ft Ross", "Ft Ross",
+                        "Ft Ross", "Wpt128", "Wpt128", "Swanton", "Swanton", "Orr", "Swanton", "Swanton", "Swanton", "Big pullout vista",
+                        "Big pullout vista", "Big pullout vista", "Big pullout vista", "Orr", "Orr", "ORR_11", "Summit rd", "Summit rd",
+                        "Summit rd", "Summit rd", "Fish-rock netbag 3", "Fish-rock netbag 1", "Fish-rock netbag 2", "Fish-rock netbag 9",
+                        "Orr", "madonna", "madonna", "madonna", "Manch_5", "Manch_5", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL",
+                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
+                        "Manch_4", "manch_1", "manch_1", "Manch_1", "Manch_3", "Manch_1", "Manch_1", "Manch_1", "MANCH_5", "ORR_1", "MANCH_1",
+                        "ORR_8", "MANCH_2", "ORR_1", "MANCH_1", "ORR_8", "MANCH_1", "ORR_1", "MANCH_6", "MANCH_6", "MANCH_12", "MANCH_3", "MANCH_9",
+                        "MANCH_2", "MANCH_6", "MANCH_12", "MANCH_1", "MANCH_1", "MANCH_3", "MANCH_12", "MANCH_1", "MANCH_3", "MANCH_4", "MANCH_6",
+                        "ORR_3", "MANCH_1", "MANCH_1", "MANCH_4", "MANCH_7", "MANCH_5", "MANCH_4", "MANCH_5", "MANCH_2", "MANCH_2", "MANCH_1",
+                        "MANCH_1", "MANCH_7", "MANCH_7", "MANCH_2", "MANCH_4", "MANCH_4", "MANCH_5", "MANCH_5", "MANCH_3", "MANCH_2", "MANCH_4",
+                        "MANCH_7", "MANCH_7", "MANCH_4", "MANCH_7", "ORR_5", "ORR_8", "MANCH_1", "ORR_1", "ORR_4", "MANCH_3", "MANCH_1", "MANCH_3",
+                        "MANCH_4", "MANCH_10", "cross", "cross", "cross", "pop inconnue", "MANCH_2", "ORR_4"))
+
+
+
+
+png("tdi_all_PCA2.png", width = 580, height = 500)
+par(mfrow = c(1,1))
+s.class(pca.cows$li, fac.score,
+        col=transp(funky(42),1),
+       # grid = FALSE,
+       possub = "topright",
+       sub = "PCA - tdi",
+        cellipse= TRUE,
+        axesell=TRUE, cstar=1, cpoint=1,
+        addaxes=TRUE,
+       # ylim = c(-100,100)
+        )
+
+dev.off()
+
+png("tdi_all_PCA-eig.png", width = 580, height = 500)
+par(mfrow = c(1,1))
+s.class(pca.cows$li, fac.score,
+        col=transp(funky(41),1),
+       # grid = FALSE,
+       possub = "topright",
+       sub = "PCA - Tsi",
+        cellipse= TRUE,
+        axesell=TRUE, cstar=1, cpoint=1,
+        addaxes=TRUE,
+       # ylim = c(-100,100)
+        )
+
+add.scatter.eig(pca.cows$eig[1:20], xax=1, yax=2,
+                ratio=.2, posi="bottomleft")
+dev.off()
+
+
+
+### calculate genetic distances
+library(poppr)
+## I have to use a genind obj
+# tdinei <- nei.dist(tdi, warning = TRUE)
+## calculate euclidean distance
+D <- dist(tab(tdi))
+## put them in a tree
+library(ape)
+tre <- njs(D)
+par(xpd=TRUE)
+
+png("tdi_tree_labels.png", width = 580, height = 500)
+temp <- as.integer(pop(tdi))
+myCol <- transp(funky(41),.9)[temp]
+plot(tre, type="unrooted", edge.w=2, font =1, show.tip.label = FALSE)
+
+#edgelabels(tex=round(tre$edge.length,1), bg=rgb(.8,.8,1,.8))
+tiplabels(pch = 19, col = myCol, adj = 0, cex = 2)
+dev.off()
+
+
+# Allele presence absencedata are extracted and NAs replaced usingtab:
+X <- tab(tdi, NA.method="mean")
+pca1 <- dudi.pca(X,scannf=FALSE,scale=FALSE)
+temp <- as.integer(pop(tdi))
+myCol <- transp(c("blue","red"),.7)[temp]
+myPch <- c(15,17)[temp]
+## basic plot
+png("tdi_all_PCA.png", width = 580, height = 500)
+png("tdi_all_PCA_labels.png", width = 580, height = 500)
+plot(pca1$li, col=myCol, cex=3, pch=myPch, xlim =c(-130, 130), ylim=c(-80, 90))
+#dev.off()
+
+## use wordcloud for non-overlapping labels
+library(wordcloud)
+textplot(pca1$li[,1], pca1$li[,2], words=rownames(X), cex=0.7, new=FALSE)
+dev.off()
+
+
+### check eigenvalues and other PCA parameters.
+## I followed this tutorial: http://www.sthda.com/english/wiki/factoextra-r-package-easy-multivariate-data-analyses-and-elegant-visualization
+library(factoextra)
+png("tdi_all_PCAeigen.png", width = 580, height = 500)
+fviz_eig(pca1)
+dev.off()
+
+
+
+
+```
+
+
