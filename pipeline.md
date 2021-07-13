@@ -3,6 +3,7 @@ This rep will keep all info about the phylogenetic analyses I will do for Timema
 ##########################################################################################################################
 
 Pipeline
+
 0 - get reads (OMG, this was a bit messy)
 
 1 - filter reads
@@ -12,6 +13,7 @@ Pipeline
 
 
 ###################
+
 0 - get reads
 
 Reads were from mixed sources. Some reads were RADseq done on Chloe samples, others were Nosil GBS or whole genome sequencing.
