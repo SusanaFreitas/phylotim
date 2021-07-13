@@ -484,10 +484,8 @@ vcftools --recode --recode-INFO-all --vcf Tdi.missfilt.recode.vcf --max-missing 
 
 ```
 Now we will make the pairwise distance tree, in R:
+
 ```R
-
-
-
 ################################################################
 ######################## ADEGENET ##############################
 ################################################################
@@ -511,14 +509,6 @@ tdivcf <- read.vcfR("Tdi_final75.recode.vcf", verbose = FALSE )
 tdi <- vcfR2genind(tdivcf)
 
 
-### curate pop and seq 
-sed -i 's/$/" ,"/g' pop.name
-tr -d '\n' < pop.name > pop.name.txt
-sed -i 's/$/" ,"/g' seq.name
-tr -d '\n' < seq.name > seq.name.txt
-sed -i 's/$/", "/g' pop.R
-tr -d '\n' < pop.R > pop_R.txt
-
 ## see individual names
 indNames(tdi)
 
@@ -529,26 +519,46 @@ Dat1 <- tdi[indNames(tdi) != "Tps_04_24"]
 Dat1 -> tdi
 
 ## set pop tdi
-tdi@pop <- as.factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", "Horseranch", "Horseranch",
-                        "Fort Bragg", "Fort Bragg", "NA", "Fort Bragg", "Fort Bragg", "Fort Bragg", "Fish", "Fish",
-                        "Iverson", "Iverson", "Iverson", "Iverson", "Orr", "Iverson", "Ft Ross", "Ft Ross", "Ft Ross", "Ft Ross",
-                        "Ft Ross", "Wpt128", "Wpt128", "Swanton", "Swanton", "Orr", "Swanton", "Swanton", "Swanton", "Big pullout vista",
-                        "Big pullout vista", "Big pullout vista", "Big pullout vista", "Orr", "Orr", "ORR_11", "Summit rd", "Summit rd",
-                        "Summit rd", "Summit rd", "Fish-rock netbag 3", "Fish-rock netbag 1", "Fish-rock netbag 2", "Fish-rock netbag 9",
-                        "Orr", "madonna", "madonna", "madonna", "Manch_5", "Manch_5", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL",
-                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "Manch_4", "manch_1", "manch_1", "Manch_1", "Manch_3", "Manch_1", "Manch_1", "Manch_1", "MANCH_5", "ORR_1", "MANCH_1",
-                        "ORR_8", "MANCH_2", "ORR_1", "MANCH_1", "ORR_8", "MANCH_1", "ORR_1", "MANCH_6", "MANCH_6", "MANCH_12", "MANCH_3", "MANCH_9",
-                        "MANCH_2", "MANCH_6", "MANCH_12", "MANCH_1", "MANCH_1", "MANCH_3", "MANCH_12", "MANCH_1", "MANCH_3", "MANCH_4", "MANCH_6",
-                        "ORR_3", "MANCH_1", "MANCH_1", "MANCH_4", "MANCH_7", "MANCH_5", "MANCH_4", "MANCH_5", "MANCH_2", "MANCH_2", "MANCH_1",
-                        "MANCH_1", "MANCH_7", "MANCH_7", "MANCH_2", "MANCH_4", "MANCH_4", "MANCH_5", "MANCH_5", "MANCH_3", "MANCH_2", "MANCH_4",
-                        "MANCH_7", "MANCH_7", "MANCH_4", "MANCH_7", "ORR_5", "ORR_8", "MANCH_1", "ORR_1", "ORR_4", "MANCH_3", "MANCH_1", "MANCH_3",
+tdi@pop <- as.factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", 
+                        "Horseranch", "Horseranch",
+                        "Fort Bragg", "Fort Bragg", "NA", "Fort Bragg", "Fort Bragg", "Fort Bragg", 
+                        "Fish", "Fish",
+                        "Iverson", "Iverson", "Iverson", "Iverson", "Orr", "Iverson", "Ft Ross",
+                        "Ft Ross", "Ft Ross", "Ft Ross",
+                        "Ft Ross", "Wpt128", "Wpt128", "Swanton", "Swanton", "Orr", "Swanton", 
+                        "Swanton", "Swanton", "Big pullout vista",
+                        "Big pullout vista", "Big pullout vista", "Big pullout vista", "Orr", "Orr", 
+                        "ORR_11", "Summit rd", "Summit rd",
+                        "Summit rd", "Summit rd", "Fish-rock netbag 3", "Fish-rock netbag 1", 
+                        "Fish-rock netbag 2", "Fish-rock netbag 9",
+                        "Orr", "madonna", "madonna", "madonna", "Manch_5", "Manch_5", "NOSIL", 
+                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL",
+                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", 
+                        "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross", "cross",
+                        "Manch_4", "manch_1", "manch_1", "Manch_1", "Manch_3", "Manch_1", "Manch_1", 
+                        "Manch_1", "MANCH_5", "ORR_1", "MANCH_1",
+                        "ORR_8", "MANCH_2", "ORR_1", "MANCH_1", "ORR_8", "MANCH_1", "ORR_1", "MANCH_6",
+                        "MANCH_6", "MANCH_12", "MANCH_3", "MANCH_9",
+                        "MANCH_2", "MANCH_6", "MANCH_12", "MANCH_1", "MANCH_1", "MANCH_3", "MANCH_12",
+                        "MANCH_1", "MANCH_3", "MANCH_4", "MANCH_6",
+                        "ORR_3", "MANCH_1", "MANCH_1", "MANCH_4", "MANCH_7", "MANCH_5", "MANCH_4", 
+                        "MANCH_5", "MANCH_2", "MANCH_2", "MANCH_1",
+                        "MANCH_1", "MANCH_7", "MANCH_7", "MANCH_2", "MANCH_4", "MANCH_4", "MANCH_5",
+                        "MANCH_5", "MANCH_3", "MANCH_2", "MANCH_4",
+                        "MANCH_7", "MANCH_7", "MANCH_4", "MANCH_7", "ORR_5", "ORR_8", "MANCH_1", "ORR_1", 
+                        "ORR_4", "MANCH_3", "MANCH_1", "MANCH_3",
                         "MANCH_4", "MANCH_10", "cross", "cross", "cross", "pop inconnue", "MANCH_2", "ORR_4"))
 tdi@pop
 
@@ -591,26 +601,45 @@ dev.off()
 
 # tdi
 indNames(tdi)
-fac.score <- factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", "Horseranch", "Horseranch",
+fac.score <- factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", 
+                        "Horseranch", "Horseranch",
                         "Fort Bragg", "Fort Bragg", "NA", "Fort Bragg", "Fort Bragg", "Fort Bragg", "Fish", "Fish",
-                        "Iverson", "Iverson", "Iverson", "Iverson", "Orr", "Iverson", "Ft Ross", "Ft Ross", "Ft Ross", "Ft Ross",
-                        "Ft Ross", "Wpt128", "Wpt128", "Swanton", "Swanton", "Orr", "Swanton", "Swanton", "Swanton", "Big pullout vista",
-                        "Big pullout vista", "Big pullout vista", "Big pullout vista", "Orr", "Orr", "ORR_11", "Summit rd", "Summit rd",
-                        "Summit rd", "Summit rd", "Fish-rock netbag 3", "Fish-rock netbag 1", "Fish-rock netbag 2", "Fish-rock netbag 9",
-                        "Orr", "madonna", "madonna", "madonna", "Manch_5", "Manch_5", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL",
-                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross",
-                        "Manch_4", "manch_1", "manch_1", "Manch_1", "Manch_3", "Manch_1", "Manch_1", "Manch_1", "MANCH_5", "ORR_1", "MANCH_1",
-                        "ORR_8", "MANCH_2", "ORR_1", "MANCH_1", "ORR_8", "MANCH_1", "ORR_1", "MANCH_6", "MANCH_6", "MANCH_12", "MANCH_3", "MANCH_9",
-                        "MANCH_2", "MANCH_6", "MANCH_12", "MANCH_1", "MANCH_1", "MANCH_3", "MANCH_12", "MANCH_1", "MANCH_3", "MANCH_4", "MANCH_6",
-                        "ORR_3", "MANCH_1", "MANCH_1", "MANCH_4", "MANCH_7", "MANCH_5", "MANCH_4", "MANCH_5", "MANCH_2", "MANCH_2", "MANCH_1",
-                        "MANCH_1", "MANCH_7", "MANCH_7", "MANCH_2", "MANCH_4", "MANCH_4", "MANCH_5", "MANCH_5", "MANCH_3", "MANCH_2", "MANCH_4",
-                        "MANCH_7", "MANCH_7", "MANCH_4", "MANCH_7", "ORR_5", "ORR_8", "MANCH_1", "ORR_1", "ORR_4", "MANCH_3", "MANCH_1", "MANCH_3",
+                        "Iverson", "Iverson", "Iverson", "Iverson", "Orr", "Iverson", "Ft Ross", "Ft Ross",
+                        "Ft Ross", "Ft Ross",
+                        "Ft Ross", "Wpt128", "Wpt128", "Swanton", "Swanton", "Orr", "Swanton",
+                        "Swanton", "Swanton", "Big pullout vista",
+                        "Big pullout vista", "Big pullout vista", "Big pullout vista", "Orr", "Orr", 
+                        "ORR_11", "Summit rd", "Summit rd",
+                        "Summit rd", "Summit rd", "Fish-rock netbag 3", "Fish-rock netbag 1", 
+                        "Fish-rock netbag 2", "Fish-rock netbag 9",
+                        "Orr", "madonna", "madonna", "madonna", "Manch_5", "Manch_5", "NOSIL", 
+                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL",
+                        "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross",
+                        "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", "cross", 
+                        "cross", "cross", "cross", "cross",
+                        "Manch_4", "manch_1", "manch_1", "Manch_1", "Manch_3", "Manch_1", "Manch_1", 
+                        "Manch_1", "MANCH_5", "ORR_1", "MANCH_1",
+                        "ORR_8", "MANCH_2", "ORR_1", "MANCH_1", "ORR_8", "MANCH_1", "ORR_1", "MANCH_6", 
+                        "MANCH_6", "MANCH_12", "MANCH_3", "MANCH_9",
+                        "MANCH_2", "MANCH_6", "MANCH_12", "MANCH_1", "MANCH_1", "MANCH_3", "MANCH_12", 
+                        "MANCH_1", "MANCH_3", "MANCH_4", "MANCH_6",
+                        "ORR_3", "MANCH_1", "MANCH_1", "MANCH_4", "MANCH_7", "MANCH_5", "MANCH_4",
+                        "MANCH_5", "MANCH_2", "MANCH_2", "MANCH_1",
+                        "MANCH_1", "MANCH_7", "MANCH_7", "MANCH_2", "MANCH_4", "MANCH_4", "MANCH_5",
+                        "MANCH_5", "MANCH_3", "MANCH_2", "MANCH_4",
+                        "MANCH_7", "MANCH_7", "MANCH_4", "MANCH_7", "ORR_5", "ORR_8", "MANCH_1", "ORR_1",
+                        "ORR_4", "MANCH_3", "MANCH_1", "MANCH_3",
                         "MANCH_4", "MANCH_10", "cross", "cross", "cross", "pop inconnue", "MANCH_2", "ORR_4"))
 
 
@@ -695,10 +724,257 @@ library(factoextra)
 png("tdi_all_PCAeigen.png", width = 580, height = 500)
 fviz_eig(pca1)
 dev.off()
+```
+
+### Working with the subset data
+
+Exclude individuals with vcftools:
+```bash
+vcftools --recode --recode-INFO-all --vcf Tdi_final75.recode.vcf --remove-indv Tps_04_24  --remove-indv Tps_04_17 \
+                --remove-indv Tps_04_22  --remove-indv Tps_04_23 --remove-indv Tps_04_25 --remove-indv Tps_04_30 \
+                --remove-indv Tps_04_35 --remove-indv Tps_04_42 --remove-indv Tps_04_5 --remove-indv Tps_04_6 \
+                --remove-indv Tpsgen.5096112 --remove-indv Tpsgen.5096121 --remove-indv Tpsgen.5096122 \
+                --remove-indv Tpsgen.5096123 --remove-indv Tpsgen.5096126 --remove-indv Tpsgen.5096128 \
+                --remove-indv Tpsgen.5096164 --remove-indv Tps_LMA_13 --remove-indv Tps_LMA_14 \
+                --remove-indv Tps_LMA_15 --remove-indv Tps_LMA_16 --remove-indv Tps_LMA_17 \
+                --remove-indv Tps_LMA_18 --remove-indv Tps_LMA_19 --remove-indv Tps_LMA_20 \
+                --remove-indv Tps_LMA_21 --remove-indv Tps_LMA_22 --remove-indv Tps_LMA_23 \
+                --remove-indv Tps_LMA_24 --remove-indv Tps_LMA_25 --remove-indv Tps_LMA_26 \
+                --remove-indv Tps_LMA_27 --remove-indv Tps_LMA_28 --remove-indv Tps_LMA_29 \
+                --remove-indv Tps_LMA_30 --remove-indv Tps_LMA_31 --remove-indv Tps_LMA_32 \
+                --remove-indv Tps_LMA_33 --remove-indv Tps_LMA_34 --remove-indv Tps_LMA_35 \
+                --remove-indv Tps_LMA_36 --remove-indv Tps_LMA_37 --remove-indv Tps_LMA_38 \
+                --remove-indv Tps_LMA_39 --remove-indv Tps_LMA_40 --remove-indv Tps_LMA_41 \
+                --remove-indv Tps_LMA_42 --remove-indv Tps_LMA_43 --remove-indv Tps_LMA_44 \
+                --remove-indv Tps_LMA_45 --remove-indv Tps_LMA_46 --remove-indv Tps_LMA_47 \
+                --remove-indv Tps_LMA_48 --remove-indv Tps_LMA_49 --remove-indv Tps_LMA_50 \
+                --remove-indv Tps_LMA_51 --remove-indv Tps_LMA_52 --remove-indv Tps_LMA_53 \
+                --remove-indv Tps_LMA_54 --remove-indv Tps_LMA_55 --remove-indv Tps_LMA_56 \
+                --remove-indv Tps_LMA_57 --remove-indv Tps_LMA_58 --remove-indv Tps_LMA_59 \
+                --remove-indv Tps_LMA_60 --remove-indv Tps_LMA_61 --remove-indv Tps_LMA_63 \
+                --remove-indv Tps_LMA_64 --remove-indv Tps_LMA_65 --remove-indv Tps_LMA_66 \
+                --remove-indv Tps_LMA_67 --remove-indv Tps_LMA_68 --remove-indv Tps_LMA_69 \
+                --remove-indv Tps_LMA_70 --remove-indv Tps_LMA_71 --remove-indv Tps_LMA_72 \
+                --remove-indv Tps_LMA_73 --remove-indv Tps_LMA_74 --remove-indv Tps_LMA_75 \
+                --remove-indv Tps_LMA_76 --remove-indv Tps_LMA_77 --remove-indv Tps_LMA_78 \
+                --remove-indv Tps_LMA_79 --remove-indv Tps_LMA_80 --remove-indv Tps_LMA_81 \
+                --remove-indv Tps_LMA_82 --remove-indv Tps_LMA_83 --remove-indv Tps_LMA_84 \
+                --remove-indv Tps_LMA_85 --remove-indv Tps_LMA_86 --remove-indv Tps_LMA_87 \
+                --remove-indv Tps_LMA_88 --remove-indv Tps_LMA_89 --remove-indv Tps_LMA_90 \
+                --remove-indv Tps_LMA_91 --remove-indv Tps_LMA_92 --remove-indv Tps_LMA_93 \
+                --remove-indv Tps_LMA_94 --remove-indv Tps_LMA_95 --remove-indv Tps_LMA_96 \
+                --remove-indv Tps_SRA_75 --remove-indv Tps_SRA_76 --remove-indv Tps_SRA_77 \
+                --out Tdi_75_subset
+
+
+
+```
+back in R:
+```R
+
+library(vcfR)
+library(adegenet)
+#library(adegraphics)
+#library(pegas)
+#library(StAMPP)
+#library(lattice)
+#library(gplots)
+#library(ape)
+#library(ggmap)
+library(poppr)
+
+#### set working directory
+setwd("/home/cravinhos/Documents/cryptic_gene_flow/tree_guillaume/3_distancetree_R/")
+## 75% max missing data - subset
+
+tdivcf <- read.vcfR("Tdi_75_subset.recode.vcf", verbose = FALSE )
+tdi <- vcfR2genind(tdivcf)
+
+## see individual names
+indNames(tdi)
+
+
+## set pop tdi
+tdi@pop <- as.factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", 
+        "Horseranch", "FortBragg", "FortBragg", "NA", "FortBragg", "FortBragg", "Iverson", 
+        "Iverson", "Iverson", "Iverson", "Orr", "FtRoss", "FtRoss", "FtRoss", "FtRoss", "Wpt128", 
+        "Wpt128", "Swanton", "Swanton", "Orr", "Swanton", "Swanton", "Bigpulloutvista", 
+        "Bigpulloutvista", "Bigpulloutvista", "Bigpulloutvista", "Orr", "O_11", "Summitrd", "Summitrd", 
+        "Summitrd", "Summitrd", "Fishrock", "Fishrock", "Fishrock", "Fishrock", "madonna", "madonna", 
+        "madonna", "M_5", "M_5", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", 
+        "M_4", "M_1", "M_1", "M_1", "M_3", "M_1", "M_1", "M_1", "M_5", "O_1", "M_1", "O_8", "M_2", 
+        "O_1", "M_1", "O_8", "M_1", "O_1", "M_6", "M_6", "M_12", "M_3", "M_9", "M_2", "M_6", "M_12", 
+        "M_1", "M_1", "M_3", "M_12", "M_1", "M_3", "M_4", "M_6", "O_3", "M_1", "M_1", "M_4", "M_7", 
+        "M_5", "M_4", "M_5", "M_2", "M_2", "M_1", "M_1", "M_7", "M_7", "M_2", "M_4", "M_4", "M_5", "M_5", 
+        "M_3", "M_2", "M_4", "M_7", "M_7", "M_4", "M_7", "O_5", "O_8", "M_1", "O_1", "O_4", "M_3", "M_1", 
+        "M_3", "M_4", "M_10", "NA", "M_2", "O_4"))
+
+
+tdi@pop
+
+# confirm if we are doing it correctly
+chr_unq <- unique(tdi@pop)
+length(chr_unq)
+
+##### PCoA - ADEGENET #######
+## make PCA
+x.cows <- tab(tdi, freq=TRUE, NA.method="mean")
+pca.cows <- dudi.pca(x.cows, center=TRUE, scale=TRUE)
+
+# 5  Multivariate analyses
+# 5.1  Principal Component Analysis (PCA)
+# Principal Component Analysis (PCA) is the amongst the most common multivariate
+# analyses used in genetics.  Running a PCA ongenindobject is straightforward. 
+# One needs to firstextract allelic data (as frequencies) and replace missing values 
+# using the accessortabandthen use the PCA procedure (dudi.pca).  Let us use this
+# approach on themicrobovdata.
+# Let us first load the data:
+# data(microbov)
+# x.cows <- tab(microbov, freq=TRUE, NA.method="mean")
+# pca.cows <- dudi.pca(x.cows, center=TRUE, scale=FALSE)
+#The function dudi.pca displays a barplot of eigenvalues (thescreeplot) and asks 
+# for a numberof retained principal components.  In general,  eigenvalues represent
+# the amount of geneticdiversity  -  as  measured  by  the  multivariate  method  being
+# used  -  represented  by  each principal component (PC). Here,  each eigenvalue is the
+# variance of the corresponding PC.A sharp decrease in the eigenvalues is usually
+# indicative of the boundaries between relevantstructures and random noise. 
+# Here, how many axes would you retain?
+# Tge = 10
+# tdi = 20
+# Tsi = 5
+
+png("tdi_subset_PCA.png", width = 580, height = 500)
+s.label(pca.cows$li)
+s.class(pca.cows$li, fac=pop(tdi), col=funky(31))
+dev.off()
+
+
+# tdi
+indNames(tdi)
+fac.score <- factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", 
+        "Horseranch", "FortBragg", "FortBragg", "NA", "FortBragg", "FortBragg", "Iverson", 
+        "Iverson", "Iverson", "Iverson", "Orr", "FtRoss", "FtRoss", "FtRoss", "FtRoss", "Wpt128", 
+        "Wpt128", "Swanton", "Swanton", "Orr", "Swanton", "Swanton", "Bigpulloutvista", 
+        "Bigpulloutvista", "Bigpulloutvista", "Bigpulloutvista", "Orr", "O_11", "Summitrd", "Summitrd", 
+        "Summitrd", "Summitrd", "Fishrock", "Fishrock", "Fishrock", "Fishrock", "madonna", "madonna", 
+        "madonna", "M_5", "M_5", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", 
+        "M_4", "M_1", "M_1", "M_1", "M_3", "M_1", "M_1", "M_1", "M_5", "O_1", "M_1", "O_8", "M_2", 
+        "O_1", "M_1", "O_8", "M_1", "O_1", "M_6", "M_6", "M_12", "M_3", "M_9", "M_2", "M_6", "M_12", 
+        "M_1", "M_1", "M_3", "M_12", "M_1", "M_3", "M_4", "M_6", "O_3", "M_1", "M_1", "M_4", "M_7", 
+        "M_5", "M_4", "M_5", "M_2", "M_2", "M_1", "M_1", "M_7", "M_7", "M_2", "M_4", "M_4", "M_5", "M_5", 
+        "M_3", "M_2", "M_4", "M_7", "M_7", "M_4", "M_7", "O_5", "O_8", "M_1", "O_1", "O_4", "M_3", "M_1", 
+        "M_3", "M_4", "M_10", "NA", "M_2", "O_4"))
 
 
 
 
+png("tdi_subset_PCA2.png", width = 580, height = 500)
+par(mfrow = c(1,1))
+s.class(pca.cows$li, fac.score,
+        col=transp(funky(31),1),
+       # grid = FALSE,
+       possub = "topright",
+       sub = "PCA - tdi",
+        cellipse= TRUE,
+        axesell=TRUE, cstar=1, cpoint=1,
+        addaxes=TRUE,
+        ylim = c(-60,100)#,
+        #xlim = c(-30,5)
+        
+        )
+
+dev.off()
+
+png("tdi_subset_PCA-eig.png", width = 580, height = 500)
+par(mfrow = c(1,1))
+s.class(pca.cows$li, fac.score,
+        col=transp(funky(41),1),
+       # grid = FALSE,
+       possub = "topright",
+       sub = "PCA - Tsi",
+        cellipse= TRUE,
+        axesell=TRUE, cstar=1, cpoint=1,
+        addaxes=TRUE,
+       # ylim = c(-100,100)
+        )
+
+add.scatter.eig(pca.cows$eig[1:20], xax=1, yax=2,
+                ratio=.2, posi="bottomleft")
+dev.off()
+
+
+
+### calculate genetic distances
+library(poppr)
+## I have to use a genind obj
+# tdinei <- nei.dist(tdi, warning = TRUE)
+## calculate euclidean distance
+D <- dist(tab(tdi))
+## put them in a tree
+library(ape)
+tre <- njs(D)
+par(xpd=TRUE)
+
+uColSub <- unique(myCol)
+uPopSub <- unique(pop(tdi))
+
+png("tdi_subsettree_labelsnames.png", width = 580, height = 500)
+temp <- as.integer(pop(tdi))
+myCol <- funky(31)[temp]
+plot(tre, type="unrooted", edge.w=2, font =1, show.tip.label = FALSE)
+
+#edgelabels(tex=round(tre$edge.length,1), bg=rgb(.8,.8,1,.8))
+plot(tre, type="unrooted", edge.w=2, font =.1, show.tip.label = FALSE, cex = .5)
+tiplabels(pch = 19, col = myCol, adj = 0, cex = 2)
+
+dev.off()
+
+
+
+
+
+## setting Manch and Orr same colour
+## set pop tdi
+tdi@pop <- as.factor(c("madSummit", "madSummit", "Philo", "Horseranch", "Horseranch", "Horseranch", 
+        "Horseranch", "FortBragg", "FortBragg", "NA", "FortBragg", "FortBragg", "Iverson", 
+        "Iverson", "Iverson", "Iverson", "Orr", "FtRoss", "FtRoss", "FtRoss", "FtRoss", "Wpt128", 
+        "Wpt128", "BPVswanton", "BPVswanton", "Orr", "BPVswanton", "BPVswanton", "BPVswanton", 
+        "BPVswanton", "BPVswanton", "BPVswanton", "Orr", "O", "madSummit", "madSummit", 
+        "madSummit", "madSummit", "Fishrock", "Fishrock", "Fishrock", "Fishrock", "madSummit", "madSummit", 
+        "madSummit", "M", "M", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "NOSIL", "cross", "cross", 
+        "M", "M", "M", "M", "M", "M", "M", "M", "M", "O", "M", "O", "M", 
+        "O", "M", "O", "M", "O", "M", "M", "M", "M", "M", "M", "M", "M", 
+        "M", "M", "M", "M", "M", "M", "M", "M", "O", "M", "M", "M", "M", 
+        "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", 
+        "M", "M", "M", "M", "M", "M", "M", "O", "O", "M", "O", "O", "M", "M", 
+        "M", "M", "M", "NA", "M", "O"))
+
+
+
+# Allele presence absencedata are extracted and NAs replaced usingtab:
+X <- tab(tdi, NA.method="mean")
+pca1 <- dudi.pca(X,scannf=FALSE,scale=FALSE)
+temp <- as.integer(pop(tdi))
+myCol <- transp(c("blue","red"),.7)[temp]
+myPch <- c(15,17)[temp]
+## basic plot
+png("tdi_all_PCA.png", width = 580, height = 500)
+png("tdi_all_PCA_labels.png", width = 580, height = 500)
+plot(pca1$li, col=myCol, cex=3, pch=myPch, xlim =c(-130, 130), ylim=c(-80, 90))
+#dev.off()
+
+## use wordcloud for non-overlapping labels
+library(wordcloud)
+textplot(pca1$li[,1], pca1$li[,2], words=rownames(X), cex=0.7, new=FALSE)
+dev.off()
+
+
+### check eigenvalues and other PCA parameters.
+## I followed this tutorial: http://www.sthda.com/english/wiki/factoextra-r-package-easy-multivariate-data-analyses-and-elegant-visualization
+library(factoextra)
+png("tdi_all_PCAeigen.png", width = 580, height = 500)
+fviz_eig(pca1)
+dev.off()
 ```
 
 
