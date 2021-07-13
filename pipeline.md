@@ -1,26 +1,28 @@
 This rep will keep all info about the phylogenetic analyses I will do for Timema.
 
-##########################################################################################################################3
+##########################################################################################################################
 
 Pipeline
 0 - get reads (OMG, this was a bit messy)
+
 1 - filter reads
+
 2 - map reads against Tce assembly
 
 
+
 ###################
-## 0 - get reads ##
+0 - get reads
 
 Reads were from mixed sources. Some reads were RADseq done on Chloe samples, others were Nosil GBS or whole genome sequencing.
-GBS samples from the Nosil group were more or less 3x less (in terms total number of basis) than the Schwander group. 
-(from a quick and dirty estimate)
+GBS samples from the Nosil group were more or less 3x less (in terms total number of basis) than the Schwander group (from a quick and dirty estimate).
 So I will pool the Nosil GBS samples in groups of 3.
 
 Nosil reads were trimmed to 60 bp
 Schwander reads trimmed to 80 bp
 
 ```bash
-cat inds_trim80 | while read line; do co reads/"$line"* . ; done
+cat inds_trim80 | while read line; do cp reads/"$line"* . ; done
 ```
 
 
@@ -377,18 +379,24 @@ done
 
 ### Call SNPs
 
-I will use VarScan (because there are several samples)
+I will use VarScan (because there are several samples, and FreeBayes doesn't work very well with a big dataset)
 
 ```bash
+
 screen -S Tdi_tree
+
 # cd /scratch/wally/FAC/FBM/DEE/tschwand/nephus/phylotim/02-mapping/reads
+
 module load Bioinformatics/Software/vital-it 
 module load UHTS/Analysis/samtools/1.10
+
 # samtools mpileup -f 1_Tdi_b3v08.fasta *filtered.bam --vcf-sample-list Tdi.list > Tdi_tree.mpileup
+
 samtools mpileup -f 1_Tdi_b3v08.fasta *filtered.bam > Tdi_tree.mpileup
+
 java -jar VarScan.v2.3.9.jar mpileup2snp Tdi_tree.mpileup --min-coverage 10 --min-reads2 5 --output-vcf 1 > Tdi_tree.vcf
 #
-```
+
 - VarScan options
 USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
         mpileup file - The SAMtools mpileup file
@@ -404,16 +412,18 @@ USAGE: java -jar $VARSCAN/VarScan.jar mpileup2snp [mpileup file] OPTIONS
         --output-vcf    If set to 1, outputs in VCF format
         --variants      Report only variant (SNP/indel) positions (mpileup2cns only) [0]
         --vcf-sample-list Add a list of sample names to use in the VCF header. This list should be in plain text, one sample per line, in the order that samples appear in the raw mpileup input. This option is only available after 1.13 version
-
-
+```
 
 
 Working directory:
 ```bash
+
 cd /scratch/wally/FAC/FBM/DEE/tschwand/nephus/phylotim/02-mapping/reads 
 
 ##### - keep reads DP > 8 and DP < 200
+
 #### gatk ####
+
 GenomeAnalysisTK VariantFiltration \
  -R 1_Tdi_b3v08.fasta \
  -V Tdi_tree.vcf \
@@ -425,40 +435,38 @@ GenomeAnalysisTK VariantFiltration \
  
 
 Vcf editing (change the samplenames):
+
 ```bash
 # get specific column number with awk:
 
 awk -F " " '{print $9}' name.file > samples
 
-I got a list of sample names. I want to substitute the newline by a tab (or whatever it is between the sample names in the vcf file)
+# I got a list of sample names. I want to substitute the newline by a tab (or whatever it is between the sample names in the vcf file)
 
 tr "\n" "\t" < samples > tabsamples
-
-
+# cat this line with the vcf file (easier than substitute #CHROM line)
 
 head -30 Tdi_tree_DPfilter.vcf > head.Tdi.DPfilter
 cat head.Tdi.DPfilter new_line_sample_names 
 cat head.Tdi.DPfilter new_line_sample_names > head2.Tdi.DPfilter
 
-If you want to delete lines 1 through 31:
-
+# If we want to delete lines 1 through 31:
 sed -e '1,31d' Tdi_tree_DPfilter.vcf > 
+
 cat head2.Tdi.DPfilter baseTdi_DPfilter > Tdi_DPfilter_ newnames.vcf
 ```
 
 
-
-
-
 And now, finally remove low coverage individuals:
 
-Check if some individuals have very low coverage
+- First we need to check if some individuals have very low coverage
 ```bash
 vcftools --vcf Tdi_tree_DPfilter.vcf --depth --out Tdi
 ```
 
-And exclude the ones that have
+- And exclude the ones that have
 ```bash
+## individuals excluded due to low coverage
 Tps_04_45	0	-nan
 Tps_04_60	0	-nan
 TpsF_LMA_1_O15	0	-nan
@@ -508,10 +516,8 @@ setwd("/home/cravinhos/Documents/cryptic_gene_flow/tree_guillaume/3_distancetree
 tdivcf <- read.vcfR("Tdi_final75.recode.vcf", verbose = FALSE )
 tdi <- vcfR2genind(tdivcf)
 
-
 ## see individual names
 indNames(tdi)
-
 
 ## eliminate monikensis individual (from ForSale)
 indNames(tdi)
@@ -560,6 +566,7 @@ tdi@pop <- as.factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch"
                         "MANCH_7", "MANCH_7", "MANCH_4", "MANCH_7", "ORR_5", "ORR_8", "MANCH_1", "ORR_1", 
                         "ORR_4", "MANCH_3", "MANCH_1", "MANCH_3",
                         "MANCH_4", "MANCH_10", "cross", "cross", "cross", "pop inconnue", "MANCH_2", "ORR_4"))
+                        
 tdi@pop
 
 # confirm if we are doing it correctly
@@ -589,9 +596,8 @@ pca.cows <- dudi.pca(x.cows, center=TRUE, scale=TRUE)
 # variance of the corresponding PC.A sharp decrease in the eigenvalues is usually
 # indicative of the boundaries between relevantstructures and random noise. 
 # Here, how many axes would you retain?
-# Tge = 10
-# tdi = 20
-# Tsi = 5
+# Tdi = 50
+
 
 png("tdi_all_PCA.png", width = 580, height = 500)
 s.label(pca.cows$li)
@@ -660,6 +666,7 @@ s.class(pca.cows$li, fac.score,
 
 dev.off()
 
+## Plot with the eigenvalues
 png("tdi_all_PCA-eig.png", width = 580, height = 500)
 par(mfrow = c(1,1))
 s.class(pca.cows$li, fac.score,
@@ -680,32 +687,47 @@ dev.off()
 
 
 ### calculate genetic distances
+
 library(poppr)
+
 ## I have to use a genind obj
 # tdinei <- nei.dist(tdi, warning = TRUE)
 ## calculate euclidean distance
 D <- dist(tab(tdi))
-## put them in a tree
+
+## plot them as a tree
+
 library(ape)
 tre <- njs(D)
 par(xpd=TRUE)
 
 png("tdi_tree_labels.png", width = 580, height = 500)
+
 temp <- as.integer(pop(tdi))
 myCol <- transp(funky(41),.9)[temp]
+
 plot(tre, type="unrooted", edge.w=2, font =1, show.tip.label = FALSE)
 
+# adds branch length value
 #edgelabels(tex=round(tre$edge.length,1), bg=rgb(.8,.8,1,.8))
+
+# adds coloured circles depending on pop value
 tiplabels(pch = 19, col = myCol, adj = 0, cex = 2)
+
 dev.off()
 
 
 # Allele presence absencedata are extracted and NAs replaced usingtab:
+
 X <- tab(tdi, NA.method="mean")
+
 pca1 <- dudi.pca(X,scannf=FALSE,scale=FALSE)
+
 temp <- as.integer(pop(tdi))
+
 myCol <- transp(c("blue","red"),.7)[temp]
 myPch <- c(15,17)[temp]
+
 ## basic plot
 png("tdi_all_PCA.png", width = 580, height = 500)
 png("tdi_all_PCA_labels.png", width = 580, height = 500)
@@ -729,7 +751,9 @@ dev.off()
 ### Working with the subset data
 
 Exclude individuals with vcftools:
+
 ```bash
+
 vcftools --recode --recode-INFO-all --vcf Tdi_final75.recode.vcf --remove-indv Tps_04_24  --remove-indv Tps_04_17 \
                 --remove-indv Tps_04_22  --remove-indv Tps_04_23 --remove-indv Tps_04_25 --remove-indv Tps_04_30 \
                 --remove-indv Tps_04_35 --remove-indv Tps_04_42 --remove-indv Tps_04_5 --remove-indv Tps_04_6 \
@@ -766,10 +790,10 @@ vcftools --recode --recode-INFO-all --vcf Tdi_final75.recode.vcf --remove-indv T
                 --remove-indv Tps_SRA_75 --remove-indv Tps_SRA_76 --remove-indv Tps_SRA_77 \
                 --out Tdi_75_subset
 
-
-
 ```
+
 back in R:
+
 ```R
 
 library(vcfR)
@@ -784,17 +808,20 @@ library(adegenet)
 library(poppr)
 
 #### set working directory
+
 setwd("/home/cravinhos/Documents/cryptic_gene_flow/tree_guillaume/3_distancetree_R/")
 ## 75% max missing data - subset
 
 tdivcf <- read.vcfR("Tdi_75_subset.recode.vcf", verbose = FALSE )
+
 tdi <- vcfR2genind(tdivcf)
 
 ## see individual names
+
 indNames(tdi)
 
-
 ## set pop tdi
+
 tdi@pop <- as.factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", 
         "Horseranch", "FortBragg", "FortBragg", "NA", "FortBragg", "FortBragg", "Iverson", 
         "Iverson", "Iverson", "Iverson", "Orr", "FtRoss", "FtRoss", "FtRoss", "FtRoss", "Wpt128", 
@@ -809,7 +836,6 @@ tdi@pop <- as.factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch"
         "M_3", "M_2", "M_4", "M_7", "M_7", "M_4", "M_7", "O_5", "O_8", "M_1", "O_1", "O_4", "M_3", "M_1", 
         "M_3", "M_4", "M_10", "NA", "M_2", "O_4"))
 
-
 tdi@pop
 
 # confirm if we are doing it correctly
@@ -817,6 +843,7 @@ chr_unq <- unique(tdi@pop)
 length(chr_unq)
 
 ##### PCoA - ADEGENET #######
+
 ## make PCA
 x.cows <- tab(tdi, freq=TRUE, NA.method="mean")
 pca.cows <- dudi.pca(x.cows, center=TRUE, scale=TRUE)
@@ -839,18 +866,17 @@ pca.cows <- dudi.pca(x.cows, center=TRUE, scale=TRUE)
 # variance of the corresponding PC.A sharp decrease in the eigenvalues is usually
 # indicative of the boundaries between relevantstructures and random noise. 
 # Here, how many axes would you retain?
-# Tge = 10
-# tdi = 20
-# Tsi = 5
+# Tdi = 50
 
 png("tdi_subset_PCA.png", width = 580, height = 500)
+
 s.label(pca.cows$li)
 s.class(pca.cows$li, fac=pop(tdi), col=funky(31))
+
 dev.off()
 
-
-# tdi
 indNames(tdi)
+
 fac.score <- factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch", "Horseranch", 
         "Horseranch", "FortBragg", "FortBragg", "NA", "FortBragg", "FortBragg", "Iverson", 
         "Iverson", "Iverson", "Iverson", "Orr", "FtRoss", "FtRoss", "FtRoss", "FtRoss", "Wpt128", 
@@ -866,10 +892,10 @@ fac.score <- factor(c("madonna", "madonna", "Philo", "Horseranch", "Horseranch",
         "M_3", "M_4", "M_10", "NA", "M_2", "O_4"))
 
 
-
-
 png("tdi_subset_PCA2.png", width = 580, height = 500)
+
 par(mfrow = c(1,1))
+
 s.class(pca.cows$li, fac.score,
         col=transp(funky(31),1),
        # grid = FALSE,
@@ -886,7 +912,9 @@ s.class(pca.cows$li, fac.score,
 dev.off()
 
 png("tdi_subset_PCA-eig.png", width = 580, height = 500)
+
 par(mfrow = c(1,1))
+
 s.class(pca.cows$li, fac.score,
         col=transp(funky(41),1),
        # grid = FALSE,
@@ -903,14 +931,18 @@ add.scatter.eig(pca.cows$eig[1:20], xax=1, yax=2,
 dev.off()
 
 
-
 ### calculate genetic distances
+
 library(poppr)
+
 ## I have to use a genind obj
 # tdinei <- nei.dist(tdi, warning = TRUE)
 ## calculate euclidean distance
+
 D <- dist(tab(tdi))
+
 ## put them in a tree
+
 library(ape)
 tre <- njs(D)
 par(xpd=TRUE)
@@ -920,21 +952,20 @@ uPopSub <- unique(pop(tdi))
 
 png("tdi_subsettree_labelsnames.png", width = 580, height = 500)
 temp <- as.integer(pop(tdi))
+
 myCol <- funky(31)[temp]
 plot(tre, type="unrooted", edge.w=2, font =1, show.tip.label = FALSE)
 
 #edgelabels(tex=round(tre$edge.length,1), bg=rgb(.8,.8,1,.8))
+
 plot(tre, type="unrooted", edge.w=2, font =.1, show.tip.label = FALSE, cex = .5)
 tiplabels(pch = 19, col = myCol, adj = 0, cex = 2)
 
 dev.off()
 
-
-
-
-
 ## setting Manch and Orr same colour
-## set pop tdi
+## set new pop tdi
+
 tdi@pop <- as.factor(c("madSummit", "madSummit", "Philo", "Horseranch", "Horseranch", "Horseranch", 
         "Horseranch", "FortBragg", "FortBragg", "NA", "FortBragg", "FortBragg", "Iverson", 
         "Iverson", "Iverson", "Iverson", "Orr", "FtRoss", "FtRoss", "FtRoss", "FtRoss", "Wpt128", 
@@ -952,27 +983,37 @@ tdi@pop <- as.factor(c("madSummit", "madSummit", "Philo", "Horseranch", "Horsera
 
 
 # Allele presence absencedata are extracted and NAs replaced usingtab:
+
 X <- tab(tdi, NA.method="mean")
+
 pca1 <- dudi.pca(X,scannf=FALSE,scale=FALSE)
+
 temp <- as.integer(pop(tdi))
+
 myCol <- transp(c("blue","red"),.7)[temp]
+
 myPch <- c(15,17)[temp]
+
 ## basic plot
 png("tdi_all_PCA.png", width = 580, height = 500)
 png("tdi_all_PCA_labels.png", width = 580, height = 500)
+
 plot(pca1$li, col=myCol, cex=3, pch=myPch, xlim =c(-130, 130), ylim=c(-80, 90))
 #dev.off()
 
 ## use wordcloud for non-overlapping labels
 library(wordcloud)
-textplot(pca1$li[,1], pca1$li[,2], words=rownames(X), cex=0.7, new=FALSE)
-dev.off()
 
+textplot(pca1$li[,1], pca1$li[,2], words=rownames(X), cex=0.7, new=FALSE)
+
+dev.off()
 
 ### check eigenvalues and other PCA parameters.
 ## I followed this tutorial: http://www.sthda.com/english/wiki/factoextra-r-package-easy-multivariate-data-analyses-and-elegant-visualization
+
 library(factoextra)
 png("tdi_all_PCAeigen.png", width = 580, height = 500)
+
 fviz_eig(pca1)
 dev.off()
 ```
